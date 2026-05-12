@@ -23,6 +23,8 @@
 
 <p>
   <a href="#快速开始">快速开始</a> |
+  <a href="#agent-自动安装">Agent 自动安装</a> |
+  <a href="#手动安装">手动安装</a> |
   <a href="#规则模块">规则模块</a> |
   <a href="#核心约束">核心约束</a> |
   <a href="#推荐工作流">推荐工作流</a> |
@@ -53,7 +55,14 @@
 
 ## 快速开始
 
-将本仓库中的 `AGENTS.md` 和 `rules/specs` 复制到你的 STM32 工程根目录：
+你可以用两种方式把本规则包接入 STM32 工程：
+
+| 方式 | 适合场景 |
+| --- | --- |
+| Agent 自动安装 | 想让 Codex、Claude Code 或 OpenCode 自动下载、复制、备份和验收规则文件 |
+| 手动安装 | 想自己复制 `AGENTS.md` 和 `rules/specs`，或需要离线使用 |
+
+接入完成后的 STM32 工程结构应类似：
 
 ```text
 your-stm32-project
@@ -66,17 +75,60 @@ your-stm32-project
 └── your_project.ioc
 ```
 
-然后在 Codex 中打开该工程目录。Codex 会优先读取 `AGENTS.md`，并在涉及具体开发场景时按需读取 `rules/specs` 下的细分规范。
+然后在 Codex、OpenCode 等支持 `AGENTS.md` 的工具中打开工程根目录。对应工具会读取 `AGENTS.md`，并在涉及具体开发场景时按需读取 `rules/specs` 下的细分规范。
+
+## Agent 自动安装
+
+本仓库提供了可直接复制给 AI 编程工具的自动安装 Prompt。用户只需要在目标 STM32 工程目录中打开对应工具，然后复制对应文件中的整段指令。
+
+| 工具 | 使用文件 | 安装结果 |
+| --- | --- | --- |
+| Codex | [`how to use for codex.md`](how%20to%20use%20for%20codex.md) | 自动复制 `AGENTS.md` 和 `rules/specs` |
+| Claude Code | [`how to use for claudecode.md`](how%20to%20use%20for%20claudecode.md) | 自动生成 `CLAUDE.md`，并复制 `rules/specs` |
+| OpenCode | [`how to use for opencode.md`](how%20to%20use%20for%20opencode.md) | 自动复制 `AGENTS.md` 和 `rules/specs` |
+
+自动安装 Prompt 会要求 Agent 执行以下动作：
+
+- 判断当前目录是否为 STM32 工程根目录
+- 临时 clone 本规则仓库
+- 复制规则入口文件和 `rules/specs`
+- 遇到已有 `AGENTS.md`、`CLAUDE.md` 或 `rules` 时先备份
+- 验收所有规则文件是否存在
+- 读取入口规则文件，并在后续开发中遵守规则
+
+## 手动安装
+
+先 clone 本仓库：
 
 ```powershell
 git clone https://github.com/zhujiu39/codex-stm32-baremetal-rules.git
 ```
 
-如果你只想在现有工程中使用规则，可以复制：
+进入仓库后，将 `AGENTS.md` 和 `rules` 复制到你的 STM32 工程根目录：
 
 ```powershell
 Copy-Item .\AGENTS.md <your-stm32-project>\AGENTS.md
 Copy-Item .\rules <your-stm32-project>\rules -Recurse
+```
+
+如果目标工程已经存在同名文件，建议先手动备份：
+
+```powershell
+Copy-Item <your-stm32-project>\AGENTS.md <your-stm32-project>\AGENTS.local-backup.md
+Copy-Item <your-stm32-project>\rules <your-stm32-project>\rules.local-backup -Recurse
+```
+
+手动安装后至少确认以下文件存在：
+
+```text
+AGENTS.md
+rules/specs/coding_style_spec.md
+rules/specs/comment_spec.md
+rules/specs/comm_protocol_spec.md
+rules/specs/error_handling_spec.md
+rules/specs/filter_spec.md
+rules/specs/key_spec.md
+rules/specs/oled_ui_spec.md
 ```
 
 ## 规则模块
