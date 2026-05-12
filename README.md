@@ -2,9 +2,9 @@
 
 <h1>Codex STM32 Bare-Metal Rules</h1>
 
-<p><strong>面向 Codex 的 STM32 嵌入式裸机开发规则包</strong></p>
+<p><strong>Codex rules for reliable STM32 bare-metal firmware development.</strong></p>
 
-<p>适用于 <code>STM32CubeMX 6.3.0</code> + <code>Keil MDK</code> + <code>STM32 HAL</code> 的裸机工程协作场景。</p>
+<p>为 <code>STM32CubeMX 6.3.0</code> + <code>Keil MDK</code> + <code>STM32 HAL</code> 工程提供清晰、可执行、可复用的 AI Agent 开发边界。</p>
 
 <p>
   <a href="https://github.com/zhujiu39/codex-stm32-baremetal-rules/blob/main/LICENSE">
@@ -35,9 +35,11 @@
 
 ## 项目定位
 
-`Codex STM32 Bare-Metal Rules` 不是一个完整的 STM32 固件工程，而是一套给 Codex 使用的嵌入式裸机开发规则。
+`Codex STM32 Bare-Metal Rules` 提供了一套面向 STM32 裸机固件开发的 Codex 规则体系，用于提升 AI Agent 参与嵌入式项目时的代码可靠性、工程一致性和 CubeMX 兼容性。
 
-它用于约束 AI Agent 在 STM32 项目中的开发行为，使其在生成、修改和维护代码时遵守 CubeMX 自动生成边界，并按模块化方式完成高层业务逻辑、驱动代码、传感器处理、OLED UI、按键交互和串口通信协议。
+这些规则围绕真实 STM32 开发痛点设计：保护 `USER CODE` 区域、避免阻塞式业务等待、规范 HAL 返回值检查、拆分高层模块、统一传感器滤波、OLED UI、按键消抖和 ESP01S 串口通信协议。
+
+本仓库不是一个完整固件工程，而是一个可复制到 STM32 项目根目录的 Agent Rules 模板。
 
 ## 适用场景
 
