@@ -28,6 +28,7 @@
   <a href="#规则模块">规则模块</a> |
   <a href="#核心约束">核心约束</a> |
   <a href="#推荐工作流">推荐工作流</a> |
+  <a href="#star-history">Star History</a> |
   <a href="#许可证">许可证</a>
 </p>
 
@@ -205,6 +206,16 @@ rules/specs/oled_ui_spec.md
 - 错误码表
 - 滤波参数
 - 协作角色名称
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=zhujiu39%2Fcodex-stm32-baremetal-rules&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zhujiu39/codex-stm32-baremetal-rules&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zhujiu39/codex-stm32-baremetal-rules&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=zhujiu39/codex-stm32-baremetal-rules&type=date&legend=top-left" />
+ </picture>
+</a>
 
 ## 许可证
 
