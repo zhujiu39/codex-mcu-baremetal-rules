@@ -209,9 +209,13 @@ rules/specs/oled_ui_spec.md
 
 ## Star History
 
-[![GitHub Repo stars](https://img.shields.io/github/stars/zhujiu39/codex-stm32-baremetal-rules?style=social)](https://github.com/zhujiu39/codex-stm32-baremetal-rules/stargazers)
-
-[![Star History Chart](https://api.star-history.com/svg?repos=zhujiu39/codex-stm32-baremetal-rules&type=Date)](https://www.star-history.com/#zhujiu39/codex-stm32-baremetal-rules&Date)
+<a href="https://www.star-history.com/?repos=zhujiu39%2Fcodex-stm32-baremetal-rules&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zhujiu39/codex-stm32-baremetal-rules&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zhujiu39/codex-stm32-baremetal-rules&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=zhujiu39/codex-stm32-baremetal-rules&type=date&legend=top-left" />
+ </picture>
+</a>
 
 ## 许可证
 
