@@ -6,7 +6,7 @@
 你现在要为当前 MCU 固件工程自动接入 `MCU Bare-Metal Rules`。
 
 规则仓库：
-https://github.com/zhujiu39/codex-stm32-baremetal-rules
+https://github.com/zhujiu39/codex-mcu-baremetal-rules
 
 OpenCode 规则入口：
 - OpenCode 会读取项目中的 `AGENTS.md` 作为项目规则。
@@ -29,7 +29,7 @@ OpenCode 规则入口：
 
 2. 在临时目录下载规则仓库。
    - 优先使用：
-     `git clone https://github.com/zhujiu39/codex-stm32-baremetal-rules.git`
+     `git clone https://github.com/zhujiu39/codex-mcu-baremetal-rules.git`
    - 临时目录可放在系统 temp 目录或当前工程外部。
    - 不要把整个规则仓库嵌套到我的 MCU 工程里。
 

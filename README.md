@@ -7,17 +7,17 @@
 <p>适用于 STM32、GD32、Nuvoton 等不同芯片与厂商 SDK，重点约束工程事实确认、生成代码保护、非阻塞设计、外设边界、通信、错误处理、采样滤波和显示交互。</p>
 
 <p>
-  <a href="https://github.com/zhujiu39/codex-stm32-baremetal-rules/blob/main/LICENSE">
+  <a href="https://github.com/zhujiu39/codex-mcu-baremetal-rules/blob/main/LICENSE">
     <img alt="License" src="https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-blue.svg">
   </a>
-  <a href="https://github.com/zhujiu39/codex-stm32-baremetal-rules">
-    <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/zhujiu39/codex-stm32-baremetal-rules?style=social">
+  <a href="https://github.com/zhujiu39/codex-mcu-baremetal-rules">
+    <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/zhujiu39/codex-mcu-baremetal-rules?style=social">
   </a>
-  <a href="https://github.com/zhujiu39/codex-stm32-baremetal-rules">
-    <img alt="GitHub forks" src="https://img.shields.io/github/forks/zhujiu39/codex-stm32-baremetal-rules?style=social">
+  <a href="https://github.com/zhujiu39/codex-mcu-baremetal-rules">
+    <img alt="GitHub forks" src="https://img.shields.io/github/forks/zhujiu39/codex-mcu-baremetal-rules?style=social">
   </a>
-  <a href="https://github.com/zhujiu39/codex-stm32-baremetal-rules/commits/main">
-    <img alt="Last commit" src="https://img.shields.io/github/last-commit/zhujiu39/codex-stm32-baremetal-rules">
+  <a href="https://github.com/zhujiu39/codex-mcu-baremetal-rules/commits/main">
+    <img alt="Last commit" src="https://img.shields.io/github/last-commit/zhujiu39/codex-mcu-baremetal-rules">
   </a>
 </p>
 
@@ -103,7 +103,7 @@ your-mcu-project
 先 clone 本仓库：
 
 ```powershell
-git clone https://github.com/zhujiu39/codex-stm32-baremetal-rules.git
+git clone https://github.com/zhujiu39/codex-mcu-baremetal-rules.git
 ```
 
 进入仓库后，将 `AGENTS.md` 和 `rules` 复制到你的 MCU 工程根目录：
@@ -193,11 +193,11 @@ rules/specs/oled_ui_spec.md
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=zhujiu39%2Fcodex-stm32-baremetal-rules&type=date&legend=top-left">
+<a href="https://www.star-history.com/?repos=zhujiu39%2Fcodex-mcu-baremetal-rules&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zhujiu39/codex-stm32-baremetal-rules&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zhujiu39/codex-stm32-baremetal-rules&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=zhujiu39/codex-stm32-baremetal-rules&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zhujiu39/codex-mcu-baremetal-rules&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zhujiu39/codex-mcu-baremetal-rules&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=zhujiu39/codex-mcu-baremetal-rules&type=date&legend=top-left" />
  </picture>
 </a>
 
