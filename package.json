@@ -2,7 +2,7 @@
   "name": "codex-stm32-baremetal-rules",
   "version": "0.1.0",
   "private": true,
-  "description": "Codex rules for reliable STM32 bare-metal firmware development.",
+  "description": "Codex rules for reliable MCU bare-metal firmware development.",
   "scripts": {
     "lint": "markdownlint-cli2 \"**/*.md\" \"#node_modules\"",
     "check": "npm run lint"

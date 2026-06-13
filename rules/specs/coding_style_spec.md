@@ -1,241 +1,61 @@
-# 编码风格详情
+# 通用编码与调度规范
 
-> 触发条件：任何涉及 STM32 C 代码新增、修改、重构、HAL 调用、主循环调度、超时等待、看门狗或断言机制的任务，必须先阅读本文件。
-> 此文件为按需加载的详细参考，核心规则见 `AGENTS.md`。
+> 触发条件：涉及 MCU C 代码新增、修改、重构、外设调用、主循环调度、超时等待、微秒时序、看门狗或断言机制时，必须先阅读本文件。
 
-## 非阻塞定时模式
+本文件描述跨芯片的编码思路。实现时必须优先匹配当前工程已有 SDK、BSP、驱动库、抽象层和命名风格，不假设某一家厂商 API 存在。
 
-`while(1)` 中只调用高层接口，不写复杂业务逻辑。周期任务统一使用 `HAL_GetTick()` 做非阻塞调度。
+## 开发前必须确认
 
-```c
-static uint32_t last_tick = 0;
-uint32_t now = HAL_GetTick();
+- 芯片型号、内核系列、主频来源、时钟树和低功耗策略。
+- 当前工程使用的驱动层：厂商库、BSP、寄存器封装、LL 风格封装或自研抽象层。
+- 时间基准来源：系统节拍、硬件定时器、调度器 tick、低功耗唤醒计数或其他项目封装。
+- 主循环或调度入口：裸机 `while`、事件循环、任务表、状态机或轻量调度器。
+- 生成代码边界：哪些文件由工具生成，哪些区域允许修改，哪些初始化函数不可手改。
+- 已有错误处理、日志、断言、看门狗和复位诊断机制。
 
-if ((now - last_tick) >= 1000U)
-{
-    last_tick = now;
-    dht11_process();
-}
-```
+## 调度原则
 
-## 通信超时模板
+- 主循环只做高层任务调度，不直接堆叠传感器协议、UI 绘制、通信解析或控制算法细节。
+- 周期任务使用当前工程已有时间基准计算到期，不使用阻塞延时实现业务节奏。
+- 等待硬件状态必须有最大等待边界，超时后进入明确错误路径。
+- 时间差判断必须考虑计数器回绕，使用无符号差值或工程已有安全时间比较函数。
+- 中断回调只记录短事件、缓冲数据或置标志，复杂处理放到主循环或任务上下文。
 
-允许短时间等待硬件状态，但必须带超时退出，禁止无限 `while`。超时后必须走统一错误处理流程，详见 `error_handling_spec.md`。
+## 外设调用原则
 
-```c
-int8_t wait_transfer_done(uint32_t timeout_ms)
-{
-    uint32_t start_tick = HAL_GetTick();
+- GPIO、UART、I2C、SPI、ADC、DMA、定时器和看门狗调用必须使用当前工程已采用的驱动风格。
+- 任何可能失败的外设操作都必须检查返回状态、错误标志或硬件状态位。
+- DMA、异步发送、异步接收和中断驱动流程必须明确缓冲区所有权，禁止在传输完成前复写仍被外设访问的缓冲区。
+- 多通道 ADC、连续采样或高频采样应优先评估 DMA、硬件触发和双缓冲方案；是否启用取决于采样频率、CPU 占用和当前芯片资源。
+- 不确定外设句柄、通道、复用功能、中断线或 DMA 映射时，先查工程配置；仍不明确则询问用户。
 
-    while (transfer_complete == 0U)
-    {
-        if ((HAL_GetTick() - start_tick) >= timeout_ms)
-        {
-            error_report(ERR_TIMEOUT);
-            return -1;
-        }
-    }
+## 微秒级时序
 
-    return 0;
-}
-```
+- 需要微秒级时序时，先确认芯片内核能力、主频、可用定时器、当前中断负载和低功耗状态。
+- 优先使用工程已有微秒延时或定时器封装；没有封装时，根据目标芯片选择硬件定时器、内核计数器或经实测校准的短延时方案。
+- 微秒等待必须有最大边界，不能形成不可退出死循环。
+- 若实现需要短时间关闭中断，必须说明影响范围，并确保不会破坏通信接收、系统节拍或关键安全逻辑。
+- 切换芯片、主频、编译优化等级或低功耗策略后，必须重新验证微秒时序。
 
-## HAL 返回值检查
+## 看门狗与断言
 
-阻塞式 HAL 函数必须检查返回值，不允许忽略通信、写入、发送、接收结果。
+- 看门狗刷新必须放在系统完成一次有效调度之后，不能放在通信等待、传感器等待、错误恢复等待或中断回调中。
+- 严重错误状态下是否继续刷新看门狗，必须由项目安全策略决定，并在错误处理模块中统一实现。
+- 断言只用于开发阶段捕获内部编程错误，不能替代运行时错误处理。
+- 外部设备离线、通信失败、用户输入越界、传感器异常等运行时问题必须走错误处理和恢复策略。
 
-```c
-if (HAL_OK != HAL_I2C_Mem_Read(&hi2c1, addr, reg, I2C_MEMADD_SIZE_8BIT, buf, len, 100U))
-{
-    error_report(ERR_COMM);
-    return -1;
-}
-```
+## 禁止事项
 
-## 微秒级时序规则
+- 禁止把某一厂商 SDK 的 API 名称当作通用规则写入新逻辑。
+- 禁止在未确认硬件资源时指定引脚、定时器、串口、DMA 通道或中断线。
+- 禁止用阻塞延时控制业务周期、显示刷新、通信重试或传感器采样。
+- 禁止忽略外设调用失败、超时、溢出、校验失败和参数非法。
+- 禁止在中断中执行字符串格式化、复杂协议解析、长时间等待或屏幕刷新。
 
-DHT11、DS18B20、1-Wire、超声波触发脉冲等微秒级时序，不允许使用 `HAL_Delay()`。
+## 完成检查清单
 
-按架构选择微秒延时实现方案：
-
-| MCU 内核 | 推荐方案 | 说明 |
-|----------|----------|------|
-| Cortex-M3 / M4 / M7（F1/F4/F7/H7/L4） | DWT CYCCNT | 先 `CoreDebug->DEMCR \|= CoreDebug_DEMCR_TRCENA_Msk;` `DWT->CTRL \|= DWT_CTRL_CYCCNTENA_Msk;` 再用 CYCCNT 差值计算微秒 |
-| Cortex-M0 / M0+（F0/G0/L0） | 专用 TIM 计数 | 这些内核**没有 DWT**，必须用一个空闲 TIM 配成 1MHz（1μs 递增），`__HAL_TIM_GET_COUNTER()` 做 busy-wait 基准 |
-| 兜底方案 | `__NOP()` 循环 | 仅用于极简短等待且无 TIM 资源时，必须在目标主频下实测校准，并在注释中写明 |
-
-共用约束：
-
-* 微秒等待函数必须有最大等待边界，不能形成不可退出死循环。
-* 若微秒级等待会短时间关闭中断，必须说明影响范围，并避免影响 UART 接收、系统节拍和 RTOS 调度。
-* 切换 MCU 系列或主频时，必须重新核对微秒延时实现是否仍然有效。
-
-DWT 方案示例（仅限 M3/M4/M7）：
-
-```c
-#if defined(DWT) && defined(CoreDebug)
-
-static void dwt_init(void)
-{
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-    DWT->CYCCNT = 0U;
-    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-}
-
-void delay_us(uint32_t us)
-{
-    uint32_t start = DWT->CYCCNT;
-    uint32_t ticks = us * (SystemCoreClock / 1000000U);
-    while ((DWT->CYCCNT - start) < ticks) { /* busy wait */ }
-}
-
-#endif
-```
-
-`us` 必须满足 `us <= UINT32_MAX / (SystemCoreClock / 1000000U)`，避免 `ticks` 乘法溢出。需要更长等待时使用毫秒级非阻塞调度，不要用微秒 busy-wait。
-
-TIM 方案示例（M0/M0+ 必选）：
-
-```c
-/* 假设 htim14 已在 CubeMX 中配置为 1MHz 计数频率、65535 自动重装 */
-static void delay_us_chunk(uint16_t us)
-{
-    uint16_t start = (uint16_t)__HAL_TIM_GET_COUNTER(&htim14);
-    while ((uint16_t)((uint16_t)__HAL_TIM_GET_COUNTER(&htim14) - start) < us) { /* busy wait */ }
-}
-
-void delay_us(uint32_t us)
-{
-    while (us >= 32768U)
-    {
-        delay_us_chunk(32767U);
-        us -= 32767U;
-    }
-
-    if (us > 0U)
-    {
-        delay_us_chunk((uint16_t)us);
-    }
-}
-```
-
-16-bit TIM 单次等待上限必须小于 32768us；超过时按上例分段，保证回绕差值判断可靠。
-
-不确定芯片是否支持 DWT 时，必须向张三确认，不要凭记忆写 `DWT->CYCCNT`。
-
-## 看门狗喂狗规范
-
-启用 IWDG/WWDG 的项目，喂狗只能放在主循环高层任务完成一次调度之后。
-
-```c
-while (1)
-{
-    app_process();
-    ui_process();
-    esp_comm_process();
-
-    if (HAL_OK != HAL_IWDG_Refresh(&hiwdg))
-    {
-        error_report(ERR_WATCHDOG);
-    }
-}
-```
-
-禁止在以下位置喂狗：
-
-* 通信等待循环内部
-* 传感器等待响应循环内部
-* 错误恢复死等逻辑内部
-* 中断回调内部
-
-这样可以确保系统一旦卡在某个任务中，看门狗能够真正复位系统。
-
-## Debug-only ASSERT 宏
-
-断言只用于开发阶段暴露程序员错误，不能替代运行时错误处理。Release 模式下断言为空操作。
-
-```c
-#ifdef DEBUG
-#define APP_ASSERT(expr)                         \
-    do                                           \
-    {                                            \
-        if (!(expr))                             \
-        {                                        \
-            __BKPT(0);                           \
-        }                                        \
-    } while (0)
-#else
-#define APP_ASSERT(expr) ((void)0)
-#endif
-```
-
-使用规则：
-
-* 指针、数组长度、枚举范围等内部不变量可用 `APP_ASSERT()`。
-* 通信失败、传感器离线、用户输入越界必须用错误处理和范围钳位，不得只写断言。
-
-## stdint.h 类型使用场景
-
-| 类型 | 范围 | 典型用途 |
-|------|------|---------|
-| `uint8_t` | 0~255 | 状态标志、GPIO 电平、传感器状态 |
-| `int16_t` | -32768~32767 | 小范围计数、带符号传感器数据 |
-| `uint16_t` | 0~65535 | ADC 数值、按键计数 |
-| `uint32_t` | 0~4294967295 | 时间戳、累计计数、超时判断 |
-
-## 指针安全
-
-```c
-uint8_t *ptr = NULL;
-
-ptr = get_buffer();
-if (ptr == NULL)
-{
-    error_report(ERR_PARAM);
-    return -1;
-}
-```
-
-## volatile 使用场景
-
-ISR 中设置、主循环中读取的变量必须加 `volatile`。
-
-```c
-static volatile uint8_t uart_rx_flag = 0;
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if (huart == &huart1)
-    {
-        uart_rx_flag = 1U;
-    }
-}
-```
-
-## 文件结构示例
-
-```
-Core/
-├── Inc/
-│   ├── dht11.h
-│   ├── ui.h
-│   └── esp_comm.h
-├── Src/
-│   ├── main.c
-│   ├── dht11.c
-│   ├── ui.c
-│   └── esp_comm.c
-```
-
-`main.c` 的 `while(1)` 中只调用高层接口：
-
-```c
-/* USER CODE BEGIN WHILE */
-while (1)
-{
-    app_process();
-    ui_process();
-    esp_comm_process();
-    /* USER CODE END WHILE */
-}
-```
+- 已说明实现依赖的时间基准、驱动层和硬件资源来源。
+- 所有等待都有超时或退出条件。
+- 所有外设失败路径都有明确处理。
+- 缓冲区生命周期与中断共享数据的同步方式清楚。
+- 新代码没有破坏生成代码边界和现有工程风格。

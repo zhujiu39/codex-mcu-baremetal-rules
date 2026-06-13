@@ -1,10 +1,10 @@
 <div align="center">
 
-<h1>Codex STM32 Bare-Metal Rules</h1>
+<h1>MCU Bare-Metal Rules</h1>
 
-<p><strong>Codex rules for reliable STM32 bare-metal firmware development.</strong></p>
+<p><strong>面向通用 MCU 裸机与轻量固件项目的 AI Agent 开发规则包。</strong></p>
 
-<p>为 <code>STM32CubeMX 6.3.0</code> + <code>Keil MDK</code> + <code>STM32 HAL</code> 工程提供清晰、可执行、可复用的 AI Agent 开发边界。</p>
+<p>适用于 STM32、GD32、Nuvoton 等不同芯片与厂商 SDK，重点约束工程事实确认、生成代码保护、非阻塞设计、外设边界、通信、错误处理、采样滤波和显示交互。</p>
 
 <p>
   <a href="https://github.com/zhujiu39/codex-stm32-baremetal-rules/blob/main/LICENSE">
@@ -22,13 +22,11 @@
 </p>
 
 <p>
+  <a href="#项目定位">项目定位</a> |
   <a href="#快速开始">快速开始</a> |
-  <a href="#agent-自动安装">Agent 自动安装</a> |
-  <a href="#手动安装">手动安装</a> |
   <a href="#规则模块">规则模块</a> |
   <a href="#核心约束">核心约束</a> |
   <a href="#推荐工作流">推荐工作流</a> |
-  <a href="#star-history">Star History</a> |
   <a href="#许可证">许可证</a>
 </p>
 
@@ -38,49 +36,52 @@
 
 ## 项目定位
 
-`Codex STM32 Bare-Metal Rules` 提供了一套面向 STM32 裸机固件开发的 Codex 规则体系，用于提升 AI Agent 参与嵌入式项目时的代码可靠性、工程一致性和 CubeMX 兼容性。
+`MCU Bare-Metal Rules` 是一套可复制到 MCU 固件工程中的 AI Agent 规则包。它不提供固定代码实现，也不绑定某一家芯片、SDK 或 IDE。
 
-这些规则围绕真实 STM32 开发痛点设计：保护 `USER CODE` 区域、避免阻塞式业务等待、规范 HAL 返回值检查、拆分高层模块、统一传感器滤波、OLED UI、按键消抖和 ESP01S 串口通信协议。
+规则的目标是让 Agent 在动手编码前先确认工程事实，再按当前项目选择实现方式：
 
-本仓库不是一个完整固件工程，而是一个可复制到 STM32 项目根目录的 Agent Rules 模板。
+- 当前使用什么芯片、SDK、BSP、IDE 和构建系统。
+- 哪些文件或代码块由配置工具生成，哪些位置允许人工修改。
+- 当前工程已经有哪些驱动封装、时间基准、错误处理、通信和 UI 模块。
+- 引脚、通道、中断、DMA、时钟和外设资源来自哪里。
+- 缺少硬件或协议信息时，应先询问用户，而不是套用示例。
 
 ## 适用场景
 
 | 场景 | 说明 |
 | --- | --- |
-| Codex 辅助开发 | 让 Codex 在明确边界内编写 STM32 裸机业务代码 |
-| CubeMX + Keil 工程 | 保护 CubeMX 自动生成结构，避免破坏初始化代码 |
-| HAL 裸机项目 | 约束 HAL 调用、非阻塞调度、返回值检查和错误处理 |
-| 传感器项目 | 统一滤波、串口上报、OLED 显示和按键交互规范 |
-| 毕设/课程设计 | 给常见 STM32 小型项目提供可复用的 AI 开发规则 |
+| MCU 裸机项目 | 主循环、状态机、轻量调度器或简单任务表 |
+| 多厂商芯片项目 | STM32、GD32、Nuvoton 或其他常见 MCU |
+| 厂商 SDK/BSP 工程 | 使用厂商库、寄存器封装、图形化配置工具或手写初始化 |
+| 传感器与控制项目 | 采样、滤波、阈值、执行机构、显示和通信 |
+| AI Agent 协作开发 | 给 Codex、Claude Code、OpenCode 等工具提供工程边界 |
 
 ## 快速开始
 
-你可以用两种方式把本规则包接入 STM32 工程：
+你可以用两种方式把本规则包接入 MCU 工程：
 
 | 方式 | 适合场景 |
 | --- | --- |
-| Agent 自动安装 | 想让 Codex、Claude Code 或 OpenCode 自动下载、复制、备份和验收规则文件 |
+| Agent 自动安装 | 想让 AI 编程工具自动下载、复制、备份和验收规则文件 |
 | 手动安装 | 想自己复制 `AGENTS.md` 和 `rules/specs`，或需要离线使用 |
 
-接入完成后的 STM32 工程结构应类似：
+接入完成后的工程结构通常类似：
 
 ```text
-your-stm32-project
+your-mcu-project
 ├── AGENTS.md
 ├── rules
 │   └── specs
-├── Core
-├── Drivers
-├── MDK-ARM
-└── your_project.ioc
+├── Core / App / User / Src
+├── Drivers / BSP / Libraries
+└── project files
 ```
 
-然后在 Codex、OpenCode 等支持 `AGENTS.md` 的工具中打开工程根目录。对应工具会读取 `AGENTS.md`，并在涉及具体开发场景时按需读取 `rules/specs` 下的细分规范。
+目录名称不强制固定。Agent 应根据当前工程真实结构判断入口和可编辑区域。
 
 ## Agent 自动安装
 
-本仓库提供了可直接复制给 AI 编程工具的自动安装 Prompt。用户只需要在目标 STM32 工程目录中打开对应工具，然后复制对应文件中的整段指令。
+本仓库提供了可直接复制给 AI 编程工具的自动安装 Prompt。用户只需要在目标 MCU 工程目录中打开对应工具，然后复制对应文件中的整段指令。
 
 | 工具 | 使用文件 | 安装结果 |
 | --- | --- | --- |
@@ -90,12 +91,12 @@ your-stm32-project
 
 自动安装 Prompt 会要求 Agent 执行以下动作：
 
-- 判断当前目录是否为 STM32 工程根目录
-- 临时 clone 本规则仓库
-- 复制规则入口文件和 `rules/specs`
-- 遇到已有 `AGENTS.md`、`CLAUDE.md` 或 `rules` 时先备份
-- 验收所有规则文件是否存在
-- 读取入口规则文件，并在后续开发中遵守规则
+- 判断当前目录是否像 MCU 固件工程根目录。
+- 临时 clone 本规则仓库。
+- 复制规则入口文件和 `rules/specs`。
+- 遇到已有规则文件时先备份。
+- 验收规则文件是否存在。
+- 读取入口规则文件，并在后续开发中遵守规则。
 
 ## 手动安装
 
@@ -105,18 +106,18 @@ your-stm32-project
 git clone https://github.com/zhujiu39/codex-stm32-baremetal-rules.git
 ```
 
-进入仓库后，将 `AGENTS.md` 和 `rules` 复制到你的 STM32 工程根目录：
+进入仓库后，将 `AGENTS.md` 和 `rules` 复制到你的 MCU 工程根目录：
 
 ```powershell
-Copy-Item .\AGENTS.md <your-stm32-project>\AGENTS.md
-Copy-Item .\rules <your-stm32-project>\rules -Recurse
+Copy-Item .\AGENTS.md <your-mcu-project>\AGENTS.md
+Copy-Item .\rules <your-mcu-project>\rules -Recurse
 ```
 
 如果目标工程已经存在同名文件，建议先手动备份：
 
 ```powershell
-Copy-Item <your-stm32-project>\AGENTS.md <your-stm32-project>\AGENTS.local-backup.md
-Copy-Item <your-stm32-project>\rules <your-stm32-project>\rules.local-backup -Recurse
+Copy-Item <your-mcu-project>\AGENTS.md <your-mcu-project>\AGENTS.local-backup.md
+Copy-Item <your-mcu-project>\rules <your-mcu-project>\rules.local-backup -Recurse
 ```
 
 手动安装后至少确认以下文件存在：
@@ -136,76 +137,59 @@ rules/specs/oled_ui_spec.md
 
 | 文件 | 作用 |
 | --- | --- |
-| [`AGENTS.md`](AGENTS.md) | Codex 总规则入口，定义角色、协作边界、CubeMX 保护规则和编码约束 |
-| [`coding_style_spec.md`](rules/specs/coding_style_spec.md) | C/HAL 编码风格、非阻塞写法、返回值检查等规范 |
-| [`comment_spec.md`](rules/specs/comment_spec.md) | 中文注释、英文注释、Keil 兼容注释格式规范 |
-| [`comm_protocol_spec.md`](rules/specs/comm_protocol_spec.md) | STM32 与 ESP01S/Arduino 的串口协议、JSON Lines、ACK/NACK 和重传规则 |
-| [`error_handling_spec.md`](rules/specs/error_handling_spec.md) | 错误码、错误等级、错误上报、降级运行和看门狗边界 |
-| [`filter_spec.md`](rules/specs/filter_spec.md) | 传感器数据滤波算法和参数建议 |
-| [`key_spec.md`](rules/specs/key_spec.md) | PB12~PB15 四键布局、中断消抖和按键事件规范 |
-| [`oled_ui_spec.md`](rules/specs/oled_ui_spec.md) | 0.96 寸 128x64 OLED UI 页面、显存刷新和交互规范 |
+| [`AGENTS.md`](AGENTS.md) | 总规则入口，定义角色、工程事实确认、生成代码保护和编码边界 |
+| [`coding_style_spec.md`](rules/specs/coding_style_spec.md) | 通用 C 编码、非阻塞调度、外设调用、微秒时序和看门狗原则 |
+| [`comment_spec.md`](rules/specs/comment_spec.md) | 注释与接口说明规范，避免重型模板化注释 |
+| [`comm_protocol_spec.md`](rules/specs/comm_protocol_spec.md) | 外部通信、帧边界、缓冲区所有权、超时、重试和字段校验 |
+| [`error_handling_spec.md`](rules/specs/error_handling_spec.md) | 错误分类、显式处理、降级运行、复位诊断和看门狗配合 |
+| [`filter_spec.md`](rules/specs/filter_spec.md) | 采样链路、滤波算法选择、参数来源、阈值判断和 ADC 数据处理 |
+| [`key_spec.md`](rules/specs/key_spec.md) | 按键、旋钮、触摸等人机输入的消抖、事件和交互边界 |
+| [`oled_ui_spec.md`](rules/specs/oled_ui_spec.md) | OLED、LCD、数码管等显示界面的刷新、布局和模块边界 |
 
 ## 核心约束
 
 | 约束 | 要求 |
 | --- | --- |
-| CubeMX 保护 | 严禁修改 `USER CODE BEGIN` / `USER CODE END` 之外的自动生成代码 |
-| `main.c` 简洁 | `while(1)` 中只调用高层接口，复杂逻辑放独立模块 |
-| 非阻塞调度 | 禁止用 `HAL_Delay()` 实现业务等待，统一使用 `HAL_GetTick()` |
-| HAL 返回值 | 阻塞 HAL 调用必须检查返回值 |
-| 静态内存 | 禁止 `malloc`，优先使用静态缓冲区 |
-| 串口输入 | 必须使用中断方式接收 |
-| 串口上报 | 默认 3 秒 1 次，使用 `ESP_REPORT_INTERVAL_MS` 限速 |
-| 传感器数据 | 必须配套滤波算法 |
-| OLED UI | 独立 `ui.c` / `ui.h`，使用显存缓冲刷新 |
-| 按键交互 | 固定 PB12~PB15 四键布局，使用中断消抖 |
-
-## CubeMX 兼容性
-
-本规则包默认面向以下工程组合：
-
-| 项目 | 默认版本/工具 |
-| --- | --- |
-| STM32CubeMX | `6.3.0` |
-| CubeMX DB | `DB.6.0.30` |
-| IDE | Keil MDK |
-| 驱动库 | STM32 HAL |
-| 系统模型 | 裸机循环调度 |
-
-如需适配 STM32CubeIDE、IAR、FreeRTOS 或自研 BSP/OSAL，建议基于本规则包单独派生一份项目规则。
+| 先确认工程事实 | 编码前识别芯片、SDK、BSP、构建系统、生成代码边界和已有封装 |
+| 不套厂商 API | 不假设某一家库函数、外设句柄、寄存器宏或工程结构存在 |
+| 保护生成代码 | 工具生成文件只在允许区域或扩展文件中修改 |
+| 主循环保持清晰 | 主循环只调度高层任务，复杂逻辑放入模块 |
+| 非阻塞设计 | 业务等待、采样、刷新和通信重试都必须可退出、可超时 |
+| 外设失败显式处理 | 外设调用、协议解析、参数入口和缓冲区操作必须检查失败路径 |
+| 硬件信息有来源 | 引脚、通道、中断、DMA、时钟和外设资源必须来自工程或用户确认 |
+| 跨芯片可移植 | 切换芯片、SDK、主频、外设映射或显示硬件后必须重新确认相关假设 |
 
 ## 推荐工作流
 
-1. 张三使用 STM32CubeMX 完成芯片、时钟、GPIO、UART、I2C、ADC、DMA 等底层配置。
-2. CubeMX 生成 Keil 工程。
-3. 将本规则包复制到工程根目录。
-4. Codex 读取 `.ioc`、`main.c`、外设初始化文件和业务模块。
-5. 新增传感器、OLED、按键、串口协议或控制算法时，由 Codex 按规则编写独立模块。
-6. `main.c` 中只保留高层初始化和循环调度调用。
-7. 使用 Keil 编译，并根据编译结果继续修正。
+1. 打开目标 MCU 工程，先让 Agent 读取入口规则。
+2. Agent 检查工程文件、构建配置、SDK/BSP、生成代码边界和已有模块。
+3. 涉及硬件资源时，Agent 从工程配置、原理图说明、头文件或用户输入确认来源。
+4. 新增功能时，先选择与当前工程一致的驱动层和模块边界。
+5. 编写最小必要改动，并保持生成代码和已有风格不被破坏。
+6. 运行当前工程已有的编译、lint、静态检查或 smoke test。
+7. 用户审查 diff 后再决定是否提交。
 
 ## 不适用场景
 
 | 场景 | 原因 |
 | --- | --- |
-| Linux 驱动开发 | 本规则只覆盖 STM32 裸机工程 |
-| 完整 RTOS 架构 | 当前规则以裸机循环调度为主 |
-| 大型自研 BSP | 需要结合项目自身架构重写规则 |
-| 通用 C 项目 | 规则强绑定 CubeMX、Keil、HAL 和 STM32 外设模型 |
+| Linux 驱动开发 | 本规则面向 MCU 固件，不覆盖 Linux 内核模型 |
+| 完整 RTOS 架构设计 | 本规则只覆盖裸机或轻量调度边界 |
+| 高安全认证流程 | 功能安全、医疗、车规等认证需要额外流程和证据链 |
+| 通用应用层软件 | 规则强关注 MCU 外设、硬件资源和固件约束 |
 
-## 开源前自定义建议
+## 自定义建议
 
-如果你基于本规则包创建自己的规则集，建议同步修改：
+如果你基于本规则包创建自己的项目规则，可以按项目补充：
 
-- CubeMX 版本
-- 目标芯片系列
-- 按键引脚定义
-- OLED 驱动接口
-- 串口协议字段
-- 云平台字段
-- 错误码表
-- 滤波参数
-- 协作角色名称
+- 芯片系列、SDK 和 IDE。
+- 生成代码边界和允许修改区域。
+- 板级资源表、引脚表和原理图约束。
+- 通信协议、错误码和日志接口。
+- 采样周期、滤波参数和标定流程。
+- 显示与输入交互设计。
+
+这些内容建议写在具体工程自己的规则文件中，不放回通用规则包。
 
 ## Star History
 
